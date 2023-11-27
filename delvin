@@ -1,0 +1,15 @@
+echo task_id=cat $WORKSPACE/.scannerwork/report-task.txt | grep ceTaskId | sed -e 's#.*=\(\)#\1#'
+#echo $task_id
+sleep 20
+anlysis=curl  -s -u sonar:sonar  http://172.17.209.25:9000/api/ce/task?id=$task_id | jq '.task."analysisId"' | sed 's/"//g'
+#echo $anlysis
+stat=curl -s -u  sonar:sonar  http://172.17.209.25:9000/api/qualitygates/project_status?analysisId=$anlysis | jq '.projectStatus.status' | sed 's/"//g'
+echo $stat
+if [ $stat == "OK" ]
+then
+    echo "Build has successfully PASSED the Quality Gate"
+    exit 0
+else
+    echo "Build has FAILED the Quality Gate. Please review Your Code and corect the Issues and Try a new Build from Jenkins."
+        exit 1
+fi
